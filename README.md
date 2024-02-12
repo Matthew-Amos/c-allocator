@@ -52,6 +52,8 @@ main(void)
 	int *i = arena_create(a, sizeof(int));
 	*i = 2000;
 
+	arena_shrink(a); // shrinks to used space.
+
 	printf("i = %d, s = %s\n", *i, s);
 	// i = 2000, s = hello, world
 
