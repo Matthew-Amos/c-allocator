@@ -80,22 +80,19 @@ bumpallocator_alloc_safe(void* allocator, size_t bytes, void* options)
     BumpAllocatorOptions* o = (BumpAllocatorOptions*) options;
 
     size_t candidate_size = a->allocated_bytes + bytes;
-    if(candidate_size > a->buffer_size)
-    {
-        size_t new_size = (candidate_size - a->buffer_size) < o->minimum_bump_size ? a->buffer_size + o->minimum_bump_size : candidate_size;
+    if(candidate_size > a->buffer_size) {
+        size_t x = candidate_size - a->buffer_size;
+        size_t m = x % o->minimum_bump_size;
+        size_t y = x - m;
+        size_t new_size = a->buffer_size + o->minimum_bump_size*((y / o->minimum_bump_size) + (m > 0));
         void* new_buffer = realloc(a->buffer, new_size);
-
         if(new_buffer == NULL)
-        {
             return AllocatorResult{ALLOC_OUT_OF_MEMORY, NULL};
-        }
-        else
-        {
-            a->buffer = new_buffer;
-            a->buffer_size = new_size;
-            return bumpallocator_alloc_unsafe(allocator, bytes, options);
-        }
+        a->buffer = new_buffer;
+        a->buffer_size = new_size;
     }
+
+    return bumpallocator_alloc_unsafe(allocator, bytes, options);
 }
 
 static AllocatorResult
